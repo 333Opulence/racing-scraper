@@ -1,7 +1,24 @@
-name: Test
-on: workflow_dispatch
+name: Racing Scraper
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
 jobs:
-  test:
+  scrape:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Workflow is working!"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Run scraper
+        run: python scraper.py
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: racing-data
+          path: races_*.csv
