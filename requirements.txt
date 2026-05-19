@@ -1,0 +1,6 @@
+punters-client
+cache-requests
+lxml
+pandas
+beautifulsoup4
+curl_cffi
