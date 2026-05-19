@@ -1,0 +1,35 @@
+import requests
+from datetime import datetime
+import csv
+
+print("Starting racing scraper...")
+
+today = datetime.now()
+url = f"https://www.punters.com.au/racing-results/{today.strftime('%Y/%m/%d')}/"
+
+print(f"Fetching: {url}")
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+}
+
+try:
+    response = requests.get(url, headers=headers, timeout=30)
+    print(f"Status: {response.status_code}")
+    
+    if response.status_code == 200:
+        # Save a simple result
+        filename = f"races_{today.strftime('%Y%m%d')}.csv"
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Date', 'Status'])
+            writer.writerow([today.strftime('%Y-%m-%d'), 'Success - Page loaded'])
+        
+        print(f"✅ Saved {filename}")
+    else:
+        print(f"Failed to fetch page")
+        
+except Exception as e:
+    print(f"Error: {e}")
+
+print("Done!")
