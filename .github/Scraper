@@ -1,0 +1,88 @@
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
+import csv
+
+print("Starting racing scraper...")
+
+# Get today's date
+today = datetime.now()
+url = f"https://www.punters.com.au/racing-results/{today.strftime('%Y/%m/%d')}/"
+
+print(f"Fetching: {url}")
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+}
+
+try:
+    response = requests.get(url, headers=headers, timeout=30)
+    print(f"Response status: {response.status_code}")
+    
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Find all meetings
+        meetings = soup.find_all('div', class_='race-meetings-desktop')
+        print(f"Found {len(meetings)} meetings")
+        
+        results = []
+        
+        for meeting in meetings:
+            # Get venue name
+            venue_elem = meeting.find('a', class_='race-meetings-desktop__meeting-name')
+            if not venue_elem:
+                venue_elem = meeting.find('h3', class_='race-meetings-desktop__meeting-name')
+            venue = venue_elem.text.strip() if venue_elem else 'Unknown'
+            
+            # Get track condition
+            track_elem = meeting.find('div', class_='track-condition')
+            track = track_elem.text.strip() if track_elem else 'Unknown'
+            
+            # Get races at this meeting
+            events = meeting.find_all('td', class_='race-meetings-desktop__event')
+            
+            for event in events:
+                # Get race name
+                race_elem = event.find('span', class_='race-name')
+                race_name = race_elem.text.strip() if race_elem else ''
+                
+                # Get off time
+                time_elem = event.find('abbr', class_='event-status__time')
+                off_time = time_elem.text.strip() if time_elem else ''
+                
+                # Get top 3 cloth numbers
+                results_span = event.find('span', class_='event-status__results')
+                cloth = results_span.text.strip() if results_span else ''
+                
+                results.append({
+                    'Date': today.strftime('%Y-%m-%d'),
+                    'Course': venue,
+                    'Race Name': race_name,
+                    'Off Time': off_time,
+                    'Going': track,
+                    'Top 3 Cloth': cloth
+                })
+        
+        if results:
+            # Save to CSV
+            filename = f"races_{today.strftime('%Y%m%d')}.csv"
+            with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.DictWriter(f, fieldnames=['Date', 'Course', 'Race Name', 'Off Time', 'Going', 'Top 3 Cloth'])
+                writer.writeheader()
+                writer.writerows(results)
+            
+            print(f"✅ Saved {len(results)} races to {filename}")
+            
+            # Print summary
+            for r in results:
+                print(f"  - {r['Course']}: {r['Race Name']} ({r['Top 3 Cloth']})")
+        else:
+            print("No races found for today")
+    else:
+        print(f"Failed to fetch page. Status: {response.status_code}")
+        
+except Exception as e:
+    print(f"Error: {e}")
+
+print("Done!")
