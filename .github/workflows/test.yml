@@ -2,8 +2,6 @@ name: Racing Scraper
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
 
 jobs:
   scrape:
@@ -14,7 +12,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: |
+          pip install requests
+          pip install beautifulsoup4
       - name: Run scraper
         run: python scraper.py
       - name: Upload results
