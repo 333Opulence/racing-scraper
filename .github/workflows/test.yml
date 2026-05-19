@@ -13,17 +13,19 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install requests
-          pip install beautifulsoup4
+          pip install requests beautifulsoup4
       - name: Run scraper
         run: python scraper.py
-      - name: List files
-        run: ls -la
-      - name: Upload results
+      - name: List all files
+        run: |
+          echo "=== Current directory ==="
+          ls -la
+          echo "=== Looking for CSV files ==="
+          ls -la *.csv 2>/dev/null || echo "No CSV files found"
+      - name: Upload everything
         uses: actions/upload-artifact@v4
         with:
-          name: racing-data
+          name: all-files
           path: |
-            *.csv
-            *.txt
-          if-no-files-found: warn
+            .
+          if-no-files-found: ignore
